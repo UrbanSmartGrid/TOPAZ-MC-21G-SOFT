@@ -58,6 +58,50 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define EXT_MDIO_Pin GPIO_PIN_0
+#define EXT_MDIO_GPIO_Port GPIOA
+#define EXT_MDC_Pin GPIO_PIN_1
+#define EXT_MDC_GPIO_Port GPIOA
+#define PHY_MDC_Pin GPIO_PIN_2
+#define PHY_MDC_GPIO_Port GPIOA
+#define PHY_MDIO_Pin GPIO_PIN_3
+#define PHY_MDIO_GPIO_Port GPIOA
+#define CPU_PHY_RESET_CH1_Pin GPIO_PIN_4
+#define CPU_PHY_RESET_CH1_GPIO_Port GPIOA
+#define CPU_PHY_RESET_CH2_Pin GPIO_PIN_5
+#define CPU_PHY_RESET_CH2_GPIO_Port GPIOA
+#define OUT_PHY_RESET_CH1_Pin GPIO_PIN_6
+#define OUT_PHY_RESET_CH1_GPIO_Port GPIOA
+#define OUT_PHY_RESET_CH2_Pin GPIO_PIN_7
+#define OUT_PHY_RESET_CH2_GPIO_Port GPIOA
+#define REGIM0_Pin GPIO_PIN_0
+#define REGIM0_GPIO_Port GPIOB
+#define REGIM1_Pin GPIO_PIN_1
+#define REGIM1_GPIO_Port GPIOB
+#define SFP_PRESENCE_CH1_Pin GPIO_PIN_2
+#define SFP_PRESENCE_CH1_GPIO_Port GPIOB
+#define E2PROM_SCL_Pin GPIO_PIN_13
+#define E2PROM_SCL_GPIO_Port GPIOB
+#define E2PROM_SDA_Pin GPIO_PIN_14
+#define E2PROM_SDA_GPIO_Port GPIOB
+#define FIBER_SD_CH1_Pin GPIO_PIN_10
+#define FIBER_SD_CH1_GPIO_Port GPIOA
+#define FIBER_SD_CH2_Pin GPIO_PIN_15
+#define FIBER_SD_CH2_GPIO_Port GPIOA
+#define SFP_SCL_CH1_Pin GPIO_PIN_3
+#define SFP_SCL_CH1_GPIO_Port GPIOB
+#define SFP_SDA_CH1_Pin GPIO_PIN_4
+#define SFP_SDA_CH1_GPIO_Port GPIOB
+#define SFP_TX_ENABLE_CH1_Pin GPIO_PIN_5
+#define SFP_TX_ENABLE_CH1_GPIO_Port GPIOB
+#define SFP_PRESENCE_CH2_Pin GPIO_PIN_6
+#define SFP_PRESENCE_CH2_GPIO_Port GPIOB
+#define SFP_SCL_CH2_Pin GPIO_PIN_7
+#define SFP_SCL_CH2_GPIO_Port GPIOB
+#define SFP_SDA_CH2_Pin GPIO_PIN_8
+#define SFP_SDA_CH2_GPIO_Port GPIOB
+#define SFP_TX_ENABLE_CH2_Pin GPIO_PIN_9
+#define SFP_TX_ENABLE_CH2_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
