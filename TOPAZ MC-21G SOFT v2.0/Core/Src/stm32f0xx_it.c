@@ -23,6 +23,7 @@
 #include "stm32f0xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "def.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -124,7 +125,41 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
+	static uint16_t	cnt_10ms	= 0;
+	static uint16_t	cnt_100ms	= 0;
+	static uint16_t	cnt_500ms	= 0;
+	static uint16_t	cnt_1000ms	= 0;
 
+
+	cnt_10ms++;
+	cnt_100ms++;
+	cnt_500ms++;
+	cnt_1000ms++;
+
+	if(cnt_10ms >= 10)
+	{
+		cnt_10ms = 0;
+		time_events.event_10ms = TRUE;
+	}
+
+	if(cnt_100ms >= 100)
+	{
+		cnt_100ms = 0;
+		time_events.event_100ms = TRUE;
+	}
+
+	if(cnt_500ms >= 500)
+	{
+		cnt_500ms = 0;
+		time_events.event_500ms = TRUE;
+	}
+
+	if(cnt_1000ms >= 1000)
+	{
+		cnt_1000ms = 0;
+		time_events.event_1000ms = TRUE;
+	}
+	
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */

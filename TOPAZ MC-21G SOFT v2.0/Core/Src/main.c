@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "def.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +45,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+TIME_EVENTS	time_events;
 
+volatile uint16_t phy_reg;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -90,6 +92,28 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+  
+	HAL_Delay(250);
+  
+	// de-assert HW reset pins
+	CPU_PHY_RESET_CH1_H
+	CPU_PHY_RESET_CH2_H  
+	OUT_PHY_RESET_CH1_H
+	OUT_PHY_RESET_CH2_H	
+		
+		
+	//!!!DEBUG
+	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID1);
+	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID2);
+	
+	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID1);
+	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID2);
+	
+	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID1);
+	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID2);
+	
+	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID1);
+	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID2);
 
   /* USER CODE END 2 */
 

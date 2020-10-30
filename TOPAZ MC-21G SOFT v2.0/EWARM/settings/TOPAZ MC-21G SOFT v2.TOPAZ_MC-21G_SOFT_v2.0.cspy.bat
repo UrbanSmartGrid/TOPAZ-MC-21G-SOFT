@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.1\common\bin\cspybat" -f "D:\PROJECTS\PLC\TOPAZ MC-21G SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.general.xcl" --backend -f "D:\PROJECTS\PLC\TOPAZ MC-21G SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.1\common\bin\cspybat" -f "D:\PROJECTS\PLC\TOPAZ-MC-21G-SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.general.xcl" --backend -f "D:\PROJECTS\PLC\TOPAZ-MC-21G-SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.1\common\bin\cspybat" -f "D:\PROJECTS\PLC\TOPAZ MC-21G SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.general.xcl" "--debug_file=%~1" --backend -f "D:\PROJECTS\PLC\TOPAZ MC-21G SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.1\common\bin\cspybat" -f "D:\PROJECTS\PLC\TOPAZ-MC-21G-SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.general.xcl" "--debug_file=%~1" --backend -f "D:\PROJECTS\PLC\TOPAZ-MC-21G-SOFT\TOPAZ MC-21G SOFT v2.0\EWARM\settings\TOPAZ MC-21G SOFT v2.TOPAZ_MC-21G_SOFT_v2.0.driver.xcl" 
 
 @echo off 
 :end
