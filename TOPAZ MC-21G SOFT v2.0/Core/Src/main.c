@@ -48,6 +48,8 @@
 TIME_EVENTS	time_events;
 
 volatile uint16_t phy_reg;
+const uint8_t fport_dev_adr[FPORT_NUMBER] = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15,0x16, 0x17};
+const uint8_t phy_dev_adr[FPORT_NUMBER] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,0x06, 0x07};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,17 +105,33 @@ int main(void)
 		
 		
 	//!!!DEBUG
-	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID1);
-	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID2);
+//	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID1);
+//	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID2);
+//	
+//	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID1);
+//	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID2);
+//	
+//	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID1);
+//	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID2);
+//	
+//	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID1);
+//	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID2);
+		
+	// read ID
+	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
+		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, fport_dev_adr[port_idx], REG_88E6097F_SWITCH_ID);
 	
-	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID1);
-	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID2);
-	
-	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID1);
-	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID2);
-	
-	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID1);
-	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID2);
+	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
+	{		
+		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 0);
+		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 1);
+	}
+		
+//	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
+//	phy_reg = (LSB<<12) | (LSB<<11);
+//	write_MDIO(ADR_88E6097F, REG_CMD, phy_reg);
+//	phy_reg = 0;
+//	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
 
   /* USER CODE END 2 */
 

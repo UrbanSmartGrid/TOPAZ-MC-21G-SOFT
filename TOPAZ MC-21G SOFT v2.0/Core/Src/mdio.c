@@ -133,3 +133,39 @@ void write_Indirect(uint8_t phy_address, uint16_t reg_address, uint16_t value)
 	write_MDIO(phy_address, 0x0D, 0x401F);
 	write_MDIO(phy_address, 0x0E, value);
 }
+
+
+
+//================================================================================//
+//=========              MARVELL INDIRRECT ACCESS FUNCTIONS            ===========//
+//================================================================================//
+uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address, uint8_t int_reg_address)
+{
+	uint16_t value;
+	
+	value = (LSB16<<15) | (LSB16<<12) | (LSB16<<11) | (int_dev_address << 5) | int_reg_address;
+	write_MDIO(MARVELL_ADR_CHIP, MARVELL_REG_CMD, value);
+	HAL_Delay(100);	//!!! здесь организовать поллинг бита готовности
+	value = read_MDIO(MARVELL_ADR_CHIP, MARVELL_REG_DATA);
+	
+	return value;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

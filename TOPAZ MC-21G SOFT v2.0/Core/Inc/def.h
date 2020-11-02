@@ -43,6 +43,20 @@ typedef	struct
 	#define	MDC_Pin				EXT_MDC_Pin
 	#define	MDIO_Pin			EXT_MDIO_Pin
 	#define	MODER_MDIO_OFFSET	0
+
+	#define	LSB16		0x0001
+
+	#define	MARVELL_ADR_CHIP			0x06
+	#define	MARVELL_REG_CMD				0x00
+	#define	MARVELL_REG_DATA			0x01
+
+	#define	REG_88E6097F_SWITCH_ID		0x03
+	#define	REG_88E6097F_PHY_ID1		0x02
+	#define	REG_88E6097F_PHY_ID2		0x03
+
+
+	#define	FPORT_NUMBER	8		
+
 #else
 	#define	MDC_GPIO_Port		PHY_MDC_GPIO_Port
 	#define	MDIO_GPIO_Port		PHY_MDIO_GPIO_Port
@@ -99,6 +113,7 @@ uint32_t read_MDIO(uint8_t phy_address, uint8_t reg_address);
 void write_MDIO(uint8_t phy_address, uint8_t reg_address, uint16_t value);
 uint32_t read_Indirect(uint8_t phy_address, uint16_t reg_address);
 void write_Indirect(uint8_t phy_address, uint16_t reg_address, uint16_t value);
+uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address, uint8_t int_reg_address);
 
 
 #endif	// __DEF_H__
