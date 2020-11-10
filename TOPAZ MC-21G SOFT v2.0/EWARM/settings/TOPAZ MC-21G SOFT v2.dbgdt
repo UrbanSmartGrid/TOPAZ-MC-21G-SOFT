@@ -640,7 +640,7 @@
                 <expressions>
                     <item>phy_reg</item>
                     <item>value</item>
-                    <item></item>
+                    <item />
                 </expressions>
                 <col-names>
                     <item>Expression</item>

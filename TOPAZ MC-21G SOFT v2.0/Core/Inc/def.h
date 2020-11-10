@@ -5,10 +5,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "main.h"
+#include "console.h"
 
 
 
 typedef enum {FALSE=0, TRUE=1} BOOLEAN;
+
+//  Режим работы, задаётся переключателями на плате:
+//   - MODE 0 - два независимых медиаконвертора
+//   - MODE 1 - два независимых порта с автодетектом
+//   - MODE 2 - два независимых порта с оптическими трансиверами (SFP)
+//   - MODE 3 - два независимых порта с разъёмами RJ-45
+//   - MODE X - режим работы не определён, исключительная ситуация
+typedef enum {MODE0=0, MODE1, MODE2, MODE3, MODEX} OPERATING_MODE;
+
+// ошибки в работе программы или аппаратуры
+typedef	enum {HW_ERROR=0, EXECUTE_ERROR} ERROR_TYPE;
+
+// исключения, которые необходимо обрабатывать программно
+// HW_EXCEPTION - критическая аппаратная ошибка, необходима аппаратная перезагрузка (через WDT)
+typedef	enum {HW_EXCEPTION=0} EXCEPTION_TYPE;
 
 
 // time-events structure
@@ -19,6 +35,12 @@ typedef	struct
 	BOOLEAN	event_500ms;
 	BOOLEAN	event_1000ms;
 } TIME_EVENTS;
+
+
+typedef struct
+{
+	OPERATING_MODE	op_mode;	
+} SYSTEM_STATUS;
 
 
 
@@ -102,12 +124,20 @@ typedef	struct
 
 
 
+// reset IWDT
+#define		WDT		HAL_IWDG_Refresh(&hiwdg);
+
+
 //======================= V A R    P R O T O S =======================//
 // main.c
 extern TIME_EVENTS	time_events;
 
 
 //====================== F U N C    P R O T O S ======================//
+// main.c
+OPERATING_MODE DetermineOperatingMode(void);
+void ResolveCriticalException(ERROR_TYPE error, char* message);
+
 // mdio.c
 uint32_t read_MDIO(uint8_t phy_address, uint8_t reg_address);
 void write_MDIO(uint8_t phy_address, uint8_t reg_address, uint16_t value);

@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "iwdg.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -45,11 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-TIME_EVENTS	time_events;
-
-volatile uint16_t phy_reg;
-const uint8_t fport_dev_adr[FPORT_NUMBER] = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15,0x16, 0x17};
-const uint8_t phy_dev_adr[FPORT_NUMBER] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05,0x06, 0x07};
+TIME_EVENTS		time_events = {FALSE, FALSE, FALSE, FALSE};
+SYSTEM_STATUS	system_status = {MODEX};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,15 +91,23 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_I2C2_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   
 	HAL_Delay(250);
+	
+	WDT
   
 	// de-assert HW reset pins
 	CPU_PHY_RESET_CH1_H
 	CPU_PHY_RESET_CH2_H  
 	OUT_PHY_RESET_CH1_H
-	OUT_PHY_RESET_CH2_H	
+	OUT_PHY_RESET_CH2_H
+		
+	system_status.op_mode = DetermineOperatingMode();
+	
+	if(system_status.op_mode == MODEX)	// аппаратная ошибка определения режима работы
+		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
 		
 		
 	//!!!DEBUG
@@ -118,14 +124,14 @@ int main(void)
 //	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID2);
 		
 	// read ID
-	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
-		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, fport_dev_adr[port_idx], REG_88E6097F_SWITCH_ID);
-	
-	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
-	{		
-		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 0);
-		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 1);
-	}
+//	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
+//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, fport_dev_adr[port_idx], REG_88E6097F_SWITCH_ID);
+//	
+//	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
+//	{		
+//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 0);
+//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 1);
+//	}
 		
 //	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
 //	phy_reg = (LSB<<12) | (LSB<<11);
@@ -139,8 +145,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-
+	  WDT
+    /* USER CODE END WHILE */	
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -159,8 +165,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL4;
@@ -191,7 +198,53 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+/******************************************************************************/
+// определяем заданную переключателем аппаратную конфигурацию
+//   - MODE 0 - два независимых медиаконвертора
+//   - MODE 1 - два независимых порта с автодетектом
+//   - MODE 2 - два независимых порта с оптическими трансиверами (SFP)
+//   - MODE 3 - два независимых порта с разъёмами RJ-45
+//   - MODE X - режим работы не определён, исключительная ситуация
+OPERATING_MODE DetermineOperatingMode(void)
+{
+	uint8_t mode = 0;
+	
+	if(HAL_GPIO_ReadPin(REGIM0_GPIO_Port, REGIM0_Pin) == GPIO_PIN_SET)
+		mode |= 0x01;
+	
+	if(HAL_GPIO_ReadPin(REGIM1_GPIO_Port, REGIM1_Pin) == GPIO_PIN_SET)
+		mode |= 0x02;
+	
+	switch(mode)
+	{
+		case 0: return MODE0;
+		case 1: return MODE1;
+		case 2: return MODE2;
+		case 3: return MODE3;
+	}
+	
+	return MODEX;
+}
 
+
+/******************************************************************************/
+void ResolveCriticalException(ERROR_TYPE error, char* message)
+{
+	//!!! ЗДЕСЬ ВЫВЕСТИ СООБЩЕНИЕ ОБ ОШИБКЕ В КОНСОЛЬ !!!//
+	// ....
+	
+	switch(error)
+	{
+		//----------------------------------------------//
+		case HW_ERROR:
+		case EXECUTE_ERROR:
+			while(1);	// ждём перезагрузки по IWDTG
+		break;
+		//----------------------------------------------//
+		default:
+		break;
+	}
+}
 /* USER CODE END 4 */
 
 /**
@@ -202,7 +255,9 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	// произошла критическая ошибка
+	// необходима аппаратная перезагрузка системы
+	ResolveCriticalException(EXECUTE_ERROR, NULL);
   /* USER CODE END Error_Handler_Debug */
 }
 
