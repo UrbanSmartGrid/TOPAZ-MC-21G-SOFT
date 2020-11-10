@@ -93,22 +93,31 @@ int main(void)
   MX_I2C2_Init();
   MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
+
+	ConsoleWrite(_str_start_program);
+	
+	system_status.op_mode = DetermineOperatingMode();
+	
+	if(system_status.op_mode == MODEX)	// аппаратная ошибка определения режима работы
+		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
   
 	HAL_Delay(250);
 	
 	WDT
   
 	// de-assert HW reset pins
-	CPU_PHY_RESET_CH1_H
-	CPU_PHY_RESET_CH2_H  
 	OUT_PHY_RESET_CH1_H
 	OUT_PHY_RESET_CH2_H
-		
-	system_status.op_mode = DetermineOperatingMode();
+	if(system_status.op_mode != MODE0)
+	{
+		CPU_PHY_RESET_CH1_H
+		CPU_PHY_RESET_CH2_H
+	}
 	
-	if(system_status.op_mode == MODEX)	// аппаратная ошибка определения режима работы
-		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
-		
+	
+	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
+		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
+			
 		
 	//!!!DEBUG
 //	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID1);
@@ -217,10 +226,10 @@ OPERATING_MODE DetermineOperatingMode(void)
 	
 	switch(mode)
 	{
-		case 0: return MODE0;
-		case 1: return MODE1;
-		case 2: return MODE2;
-		case 3: return MODE3;
+		case 0: {ConsoleWrite("MODE0 detected\n");	return MODE0;}
+		case 1: {ConsoleWrite("MODE1 detected\n");	return MODE1;}
+		case 2: {ConsoleWrite("MODE2 detected\n");	return MODE2;}
+		case 3: {ConsoleWrite("MODE3 detected\n");	return MODE3;}
 	}
 	
 	return MODEX;
@@ -230,8 +239,8 @@ OPERATING_MODE DetermineOperatingMode(void)
 /******************************************************************************/
 void ResolveCriticalException(ERROR_TYPE error, char* message)
 {
-	//!!! ЗДЕСЬ ВЫВЕСТИ СООБЩЕНИЕ ОБ ОШИБКЕ В КОНСОЛЬ !!!//
-	// ....
+	if(message != NULL)
+		ConsoleWrite(message);
 	
 	switch(error)
 	{

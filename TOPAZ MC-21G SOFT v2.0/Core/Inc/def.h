@@ -5,11 +5,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "main.h"
-#include "console.h"
 
 
 
 typedef enum {FALSE=0, TRUE=1} BOOLEAN;
+typedef enum {FAIL=0, SUCCESS} RESULT;
+
 
 //  Режим работы, задаётся переключателями на плате:
 //   - MODE 0 - два независимых медиаконвертора
@@ -128,6 +129,25 @@ typedef struct
 #define		WDT		HAL_IWDG_Refresh(&hiwdg);
 
 
+
+//=======================   C O N S O L E   =======================//
+
+// write debug message to console
+#ifdef __DEBUG__
+	#define		ConsoleWrite(message)	{if(message != NULL)\
+											CDC_Transmit_FS((uint8_t*)message, strlen(message));}
+#else
+	#define		ConsoleWrite(message)
+#endif	// __DEBUG__
+
+// console message templates
+#define	_str_start_program		"START PROGRAMM EXECUTION!\n"
+#define	_str_wrong_op_mode		"Operation mode isn't determined!\n"
+#define	_str_phy_detect_error	"PHYs set doesn't match to selected operation mode!\n"
+
+//=================================================================//										
+										
+
 //======================= V A R    P R O T O S =======================//
 // main.c
 extern TIME_EVENTS	time_events;
@@ -144,6 +164,7 @@ void write_MDIO(uint8_t phy_address, uint8_t reg_address, uint16_t value);
 uint32_t read_Indirect(uint8_t phy_address, uint16_t reg_address);
 void write_Indirect(uint8_t phy_address, uint16_t reg_address, uint16_t value);
 uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address, uint8_t int_reg_address);
+
 
 
 #endif	// __DEF_H__
