@@ -47,7 +47,8 @@
 
 /* USER CODE BEGIN PV */
 TIME_EVENTS		time_events = {FALSE, FALSE, FALSE, FALSE};
-SYSTEM_STATUS	system_status = {MODEX};
+SYSTEM_STATUS	system_status = {MODEX, ABSENT, ABSENT};
+SYSTEM_EVENTS	system_events = {FALSE, FALSE, FALSE, FALSE};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,6 +99,9 @@ int main(void)
 	
 	system_status.op_mode = DetermineOperatingMode();
 	
+	//!!! DEBUG !!!
+	system_status.op_mode = MODE1;
+	
 	if(system_status.op_mode == MODEX)	// àïïàðàòíàÿ îøèáêà îïðåäåëåíèÿ ðåæèìà ðàáîòû
 		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
   
@@ -117,45 +121,66 @@ int main(void)
 	
 	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
 		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
-			
-		
-	//!!!DEBUG
-//	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID1);
-//	phy_reg = read_MDIO(CPU_PHY_ADR_CH1, PHY_REG_ID2);
-//	
-//	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID1);
-//	phy_reg = read_MDIO(CPU_PHY_ADR_CH2, PHY_REG_ID2);
-//	
-//	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID1);
-//	phy_reg = read_MDIO(OUT_PHY_ADR_CH1, PHY_REG_ID2);
-//	
-//	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID1);
-//	phy_reg = read_MDIO(OUT_PHY_ADR_CH2, PHY_REG_ID2);
-		
-	// read ID
-//	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
-//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, fport_dev_adr[port_idx], REG_88E6097F_SWITCH_ID);
-//	
-//	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
-//	{		
-//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 0);
-//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 1);
-//	}
-		
-//	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
-//	phy_reg = (LSB<<12) | (LSB<<11);
-//	write_MDIO(ADR_88E6097F, REG_CMD, phy_reg);
-//	phy_reg = 0;
-//	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
-
+	
+	WDT
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-	  WDT
-    /* USER CODE END WHILE */	
+	while (1)
+	{
+		WDT
+		  
+		//-------------------------------------------------------//
+		if(time_events.event_10ms == TRUE)
+		{
+			time_events.event_10ms = FALSE;
+			
+			if(system_events.event_sfp_inserted_ch1==TRUE)
+			{
+				system_events.event_sfp_inserted_ch1 = FALSE;
+				ConsoleWrite("ÂÑÒÀÂËÅÍ ÌÎÄÓËÜ SFP ÊÀÍÀË 1\n");
+			}
+			
+			if(system_events.event_sfp_inserted_ch2==TRUE)
+			{
+				system_events.event_sfp_inserted_ch2 = FALSE;
+				ConsoleWrite("ÂÑÒÀÂËÅÍ ÌÎÄÓËÜ SFP ÊÀÍÀË 2\n");
+			}
+			
+			if(system_events.event_sfp_removed_ch1==TRUE)
+			{
+				system_events.event_sfp_removed_ch1 = FALSE;
+				ConsoleWrite("ÌÎÄÓËÜ SFP ÊÀÍÀË 1 ÈÇÂËÅ×¨Í\n");
+			}
+			
+			if(system_events.event_sfp_removed_ch2==TRUE)
+			{
+				system_events.event_sfp_removed_ch2 = FALSE;
+				ConsoleWrite("ÌÎÄÓËÜ SFP ÊÀÍÀË 2 ÈÇÂËÅ×¨Í\n");
+			}
+		}
+
+		
+		//-------------------------------------------------------//
+		if(time_events.event_100ms == TRUE)
+	  	{
+			time_events.event_100ms = FALSE;
+			
+			CheckSFPPresence();
+		}
+		
+//		if(time_events.event_500ms == TRUE)
+//	  	{
+//			time_events.event_500ms = FALSE;
+//		}
+//		
+//		if(time_events.event_1000ms == TRUE)
+//	  	{
+//			time_events.event_1000ms = FALSE;
+//		}
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -218,10 +243,10 @@ OPERATING_MODE DetermineOperatingMode(void)
 {
 	uint8_t mode = 0;
 	
-	if(HAL_GPIO_ReadPin(REGIM0_GPIO_Port, REGIM0_Pin) == GPIO_PIN_SET)
+	if(HAL_GPIO_ReadPin(REGIM0_GPIO_Port, REGIM0_Pin) == GPIO_PIN_RESET)
 		mode |= 0x01;
 	
-	if(HAL_GPIO_ReadPin(REGIM1_GPIO_Port, REGIM1_Pin) == GPIO_PIN_SET)
+	if(HAL_GPIO_ReadPin(REGIM1_GPIO_Port, REGIM1_Pin) == GPIO_PIN_RESET)
 		mode |= 0x02;
 	
 	switch(mode)

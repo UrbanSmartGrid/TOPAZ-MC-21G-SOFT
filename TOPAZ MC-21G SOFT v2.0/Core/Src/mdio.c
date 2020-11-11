@@ -136,6 +136,7 @@ void write_Indirect(uint8_t phy_address, uint16_t reg_address, uint16_t value)
 
 
 
+#ifdef	__MDIO_MASTER__
 //================================================================================//
 //=========              MARVELL INDIRRECT ACCESS FUNCTIONS            ===========//
 //================================================================================//
@@ -151,6 +152,25 @@ uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address,
 	return value;
 }
 
+
+
+
+	// read ID
+//	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
+//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, fport_dev_adr[port_idx], REG_88E6097F_SWITCH_ID);
+//	
+//	for(uint8_t port_idx=0; port_idx<FPORT_NUMBER; port_idx++)
+//	{		
+//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 0);
+//		phy_reg = Marvell_ReadPortRegister(MARVELL_ADR_CHIP, phy_dev_adr[port_idx], 1);
+//	}
+		
+//	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
+//	phy_reg = (LSB<<12) | (LSB<<11);
+//	write_MDIO(ADR_88E6097F, REG_CMD, phy_reg);
+//	phy_reg = 0;
+//	phy_reg = read_MDIO(ADR_88E6097F, REG_CMD);
+#endif	// __MDIO_MASTER__
 
 
 

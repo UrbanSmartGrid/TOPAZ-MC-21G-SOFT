@@ -1065,6 +1065,12 @@
                     <name>$PROJ_DIR$\..\Core\Src\mdio.c</name>
                 </file>
                 <file>
+                    <name>$PROJ_DIR$\..\Core\Src\phy.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\Core\Src\SFP.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Core\Src\stm32f0xx_hal_msp.c</name>
                 </file>
                 <file>

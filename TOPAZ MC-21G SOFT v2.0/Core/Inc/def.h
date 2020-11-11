@@ -5,12 +5,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "main.h"
-
+#include "usbd_cdc_if.h"
 
 
 typedef enum {FALSE=0, TRUE=1} BOOLEAN;
-typedef enum {FAIL=0, SUCCESS} RESULT;
-
 
 //  Режим работы, задаётся переключателями на плате:
 //   - MODE 0 - два независимых медиаконвертора
@@ -40,7 +38,25 @@ typedef	struct
 
 typedef struct
 {
-	OPERATING_MODE	op_mode;	
+	BOOLEAN		event_sfp_inserted_ch1;
+	BOOLEAN		event_sfp_inserted_ch2;
+	BOOLEAN		event_sfp_removed_ch1;
+	BOOLEAN		event_sfp_removed_ch2;
+} SYSTEM_EVENTS;
+
+// SFP presence state:
+// ABSENT => отсутствует, начальное состояние или два последовательный сигнала ИЗВЛЕЧЁН (анти-дребезг)
+// INSERTED => отсутствовало, но поступил сигнал ВСТАВЛЕН
+// PRESENT => присутствует, повторное поступление сигнала ВСТАВЛЕН (подтверждение, анти-дребезг)
+// REMOVED => присутствовало, но поступил сигнал ИЗВЛЕЧЁН
+typedef enum {ABSENT=0, INSERTED, PRESENT, REMOVED} SFP_PRESENCE;
+
+
+typedef struct
+{
+	OPERATING_MODE	op_mode;
+	SFP_PRESENCE	ch1_sfp_presence;
+	SFP_PRESENCE	ch2_sfp_presence;
 } SYSTEM_STATUS;
 
 
@@ -58,7 +74,7 @@ typedef struct
 
 
 
-#define	__MDIO_MASTER__
+//#define	__MDIO_MASTER__
 	
 #ifdef	__MDIO_MASTER__
 	#define	MDC_GPIO_Port		EXT_MDC_GPIO_Port
@@ -101,7 +117,7 @@ typedef struct
 #define	OUT_PHY_ADR_CH2		0x04
 
 
-//// ?????? ????????? PHY
+// PHY's register addresses
 //#define	PHY_REG_BASIC_CONTROL	0x00
 //#define	PHY_REG_BASIC_STATUS	0x01
 #define	PHY_REG_ID1				0x02
@@ -124,14 +140,24 @@ typedef struct
 //#define	INDIRRECT_REG_FIBER_STATUS	0x0C01
 
 
+// PHY's ID
+// KSZ9031
+#define		KSZ9031_ID1				0x0022
+#define		KSZ9031_ID2				0x1620
+#define		KSZ9031_ID2_MASK		0xFFF0
 
-// reset IWDT
-#define		WDT		HAL_IWDG_Refresh(&hiwdg);
 
 
+#define	__WDT__
+#ifdef __WDT__
+	// reset IWDT
+	#define		WDT		HAL_IWDG_Refresh(&hiwdg);
+#else
+	#define		WDT
+#endif	// __WDT__
 
 //=======================   C O N S O L E   =======================//
-
+#define	__DEBUG__
 // write debug message to console
 #ifdef __DEBUG__
 	#define		ConsoleWrite(message)	{if(message != NULL)\
@@ -150,7 +176,9 @@ typedef struct
 
 //======================= V A R    P R O T O S =======================//
 // main.c
-extern TIME_EVENTS	time_events;
+extern TIME_EVENTS		time_events;
+extern SYSTEM_STATUS	system_status;
+extern SYSTEM_EVENTS	system_events;
 
 
 //====================== F U N C    P R O T O S ======================//
@@ -164,6 +192,12 @@ void write_MDIO(uint8_t phy_address, uint8_t reg_address, uint16_t value);
 uint32_t read_Indirect(uint8_t phy_address, uint16_t reg_address);
 void write_Indirect(uint8_t phy_address, uint16_t reg_address, uint16_t value);
 uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address, uint8_t int_reg_address);
+
+// phy.c
+ErrorStatus CheckPHYPresence(OPERATING_MODE op_mode);
+
+// SFP.c
+void CheckSFPPresence(void);
 
 
 
