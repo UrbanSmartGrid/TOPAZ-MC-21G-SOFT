@@ -10,6 +10,7 @@
 
 typedef enum {FALSE=0, TRUE=1} BOOLEAN;
 
+
 //  Режим работы, задаётся переключателями на плате:
 //   - MODE 0 - два независимых медиаконвертора
 //   - MODE 1 - два независимых порта с автодетектом
@@ -155,6 +156,31 @@ typedef struct
 #else
 	#define		WDT
 #endif	// __WDT__
+
+
+//=======================  S O F T   I 2 C  =======================//
+#define	CH1_SCL_H		SFP_SCL_CH1_GPIO_Port->BSRR = (uint32_t)SFP_SCL_CH1_Pin;
+#define	CH1_SCL_L		SFP_SCL_CH1_GPIO_Port->BRR = (uint32_t)SFP_SCL_CH1_Pin;
+
+
+#define	SFP_BUS_ADDRESS_LOW		0xA0
+#define	SFP_BUS_ADDRESS_TOP		0xA2
+
+#define	SFP_OPERATION_READ(bus_address)		bus_address |= 0x01
+#define	SFP_OPERATION_WRITE(bus_address)	bus_address &= 0xFE
+
+#define	SFP_PAYLOAD_MAX_LENGTH	256
+
+#pragma pack(1)
+typedef struct
+{
+	uint8_t		bus_address_operation;
+	uint8_t		register_address;
+	uint8_t		*payload;
+	uint8_t		payload_length;
+} SFP_PACKET;
+#pragma pack()
+
 
 //=======================   C O N S O L E   =======================//
 #define	__DEBUG__

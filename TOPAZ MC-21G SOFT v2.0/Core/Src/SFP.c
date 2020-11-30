@@ -1,6 +1,8 @@
 #include "def.h"
 
 
+SFP_PACKET	sfp_packet;
+
 
 /******************************************************************************/
 void CheckSFPPresence(void)
@@ -106,3 +108,21 @@ void CheckSFPPresence(void)
 		break;
 	}
 }
+
+
+/******************************************************************************/
+ErrorStatus SFP_WriteData(uint8_t bus_address, uint8_t reg_address, uint8_t *data, uint8_t data_length)
+{
+	sfp_packet.bus_address_operation = bus_address;
+	SFP_OPERATION_WRITE(sfp_packet.bus_address_operation);
+	sfp_packet.register_address = reg_address;
+	sfp_packet.payload = data;
+	sfp_packet.payload_length = data_length;
+	
+	//!!! START I2C TRANSACTION
+	
+	
+	return SUCCESS;
+}
+
+

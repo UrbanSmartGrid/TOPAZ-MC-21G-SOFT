@@ -21,6 +21,7 @@
 #include "main.h"
 #include "i2c.h"
 #include "iwdg.h"
+#include "tim.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -49,6 +50,9 @@
 TIME_EVENTS		time_events = {FALSE, FALSE, FALSE, FALSE};
 SYSTEM_STATUS	system_status = {MODEX, ABSENT, ABSENT};
 SYSTEM_EVENTS	system_events = {FALSE, FALSE, FALSE, FALSE};
+
+
+extern TIM_HandleTypeDef htim6;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,22 +96,20 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_I2C2_Init();
-  MX_IWDG_Init();
+//  MX_IWDG_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
 	ConsoleWrite(_str_start_program);
 	
 	system_status.op_mode = DetermineOperatingMode();
-	
-	//!!! DEBUG !!!
-	system_status.op_mode = MODE1;
-	
+		
 	if(system_status.op_mode == MODEX)	// аппаратная ошибка определения режима работы
 		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
   
 	HAL_Delay(250);
 	
-	WDT
+//	WDT
   
 	// de-assert HW reset pins
 	OUT_PHY_RESET_CH1_H
@@ -122,14 +124,19 @@ int main(void)
 	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
 		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
 	
-	WDT
+//	WDT
+	
+	// Start TIM6
+	TIM6->DIER |= 0x01;	// Update interrupt enabled
+	HAL_TIM_Base_Start(&htim6);
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		WDT
+//		WDT
 		  
 		//-------------------------------------------------------//
 		if(time_events.event_10ms == TRUE)
