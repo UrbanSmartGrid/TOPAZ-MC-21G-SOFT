@@ -188,11 +188,11 @@ void TIM6_IRQHandler(void)
 	
 	if(toggle_flag)
 	{
-		CH1_SCL_H
+		SFP_SCL_H
 	}
 	else
 	{
-		CH1_SCL_L
+		SFP_SCL_L
 	}
 	
 	

@@ -127,7 +127,14 @@ int main(void)
 //	WDT
 	
 	// Start TIM6
-	TIM6->DIER |= 0x01;	// Update interrupt enabled
+	//!!!DEBUG
+	// CHANNEL1
+	port_SCL	= SFP_SCL_CH1_GPIO_Port;
+	pin_SCL		= SFP_SCL_CH1_Pin;
+	port_SDA	= SFP_SDA_CH1_GPIO_Port;
+	pin_SDA		= SFP_SDA_CH1_Pin;
+	// Update interrupt enabled
+	TIM6->DIER |= 0x01;
 	HAL_TIM_Base_Start(&htim6);
 	
   /* USER CODE END 2 */

@@ -158,9 +158,19 @@ typedef struct
 #endif	// __WDT__
 
 
+
 //=======================  S O F T   I 2 C  =======================//
 #define	CH1_SCL_H		SFP_SCL_CH1_GPIO_Port->BSRR = (uint32_t)SFP_SCL_CH1_Pin;
 #define	CH1_SCL_L		SFP_SCL_CH1_GPIO_Port->BRR = (uint32_t)SFP_SCL_CH1_Pin;
+
+
+#define	CH2_SCL_H		SFP_SCL_CH2_GPIO_Port->BSRR = (uint32_t)SFP_SCL_CH1_Pin;
+#define	CH2_SCL_L		SFP_SCL_CH2_GPIO_Port->BRR = (uint32_t)SFP_SCL_CH1_Pin;
+
+
+#define	SFP_SCL_H		port_SCL->BSRR = (uint32_t)pin_SCL;
+#define	SFP_SCL_L		port_SCL->BRR = (uint32_t)pin_SCL;
+
 
 
 #define	SFP_BUS_ADDRESS_LOW		0xA0
@@ -170,6 +180,9 @@ typedef struct
 #define	SFP_OPERATION_WRITE(bus_address)	bus_address &= 0xFE
 
 #define	SFP_PAYLOAD_MAX_LENGTH	256
+
+
+typedef enum {CHANNEL1, CHANNEL2, CHANNEL3, CHANNEL4} CHANNEL;
 
 #pragma pack(1)
 typedef struct
@@ -206,6 +219,12 @@ extern TIME_EVENTS		time_events;
 extern SYSTEM_STATUS	system_status;
 extern SYSTEM_EVENTS	system_events;
 
+// SFP.c
+extern GPIO_TypeDef*	port_SCL;
+extern uint16_t			pin_SCL;
+extern GPIO_TypeDef*	port_SDA;
+extern uint16_t			pin_SDA;
+
 
 //====================== F U N C    P R O T O S ======================//
 // main.c
@@ -224,6 +243,7 @@ ErrorStatus CheckPHYPresence(OPERATING_MODE op_mode);
 
 // SFP.c
 void CheckSFPPresence(void);
+ErrorStatus SFP_WriteData(uint8_t bus_address, uint8_t reg_address, uint8_t *data, uint8_t data_length, CHANNEL channel);
 
 
 

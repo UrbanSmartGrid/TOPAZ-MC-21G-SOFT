@@ -3,6 +3,11 @@
 
 SFP_PACKET	sfp_packet;
 
+GPIO_TypeDef*	port_SCL;
+uint16_t		pin_SCL;
+GPIO_TypeDef*	port_SDA;
+uint16_t		pin_SDA;
+
 
 /******************************************************************************/
 void CheckSFPPresence(void)
@@ -111,7 +116,7 @@ void CheckSFPPresence(void)
 
 
 /******************************************************************************/
-ErrorStatus SFP_WriteData(uint8_t bus_address, uint8_t reg_address, uint8_t *data, uint8_t data_length)
+ErrorStatus SFP_WriteData(uint8_t bus_address, uint8_t reg_address, uint8_t *data, uint8_t data_length, CHANNEL channel)
 {
 	sfp_packet.bus_address_operation = bus_address;
 	SFP_OPERATION_WRITE(sfp_packet.bus_address_operation);
@@ -119,7 +124,36 @@ ErrorStatus SFP_WriteData(uint8_t bus_address, uint8_t reg_address, uint8_t *dat
 	sfp_packet.payload = data;
 	sfp_packet.payload_length = data_length;
 	
-	//!!! START I2C TRANSACTION
+	switch(channel)
+	{
+		//----------------------------------------//
+		case CHANNEL1:
+		{
+			port_SCL	= SFP_SCL_CH1_GPIO_Port;
+			pin_SCL		= SFP_SCL_CH1_Pin;
+			port_SDA	= SFP_SDA_CH1_GPIO_Port;
+			pin_SDA		= SFP_SDA_CH1_Pin;
+		}
+		break;
+		//----------------------------------------//
+		case CHANNEL2:
+		{
+			port_SCL	= SFP_SCL_CH2_GPIO_Port;
+			pin_SCL		= SFP_SCL_CH2_Pin;
+			port_SDA	= SFP_SDA_CH2_GPIO_Port;
+			pin_SDA		= SFP_SDA_CH2_Pin;
+		}
+		break;
+		//----------------------------------------//
+		default:
+			return ERROR;
+		break;
+	}
+
+	
+	// START I2C TRANSACTION
+	
+	
 	
 	
 	return SUCCESS;
