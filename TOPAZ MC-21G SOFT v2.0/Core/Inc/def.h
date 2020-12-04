@@ -43,6 +43,10 @@ typedef struct
 	BOOLEAN		event_sfp_inserted_ch2;
 	BOOLEAN		event_sfp_removed_ch1;
 	BOOLEAN		event_sfp_removed_ch2;
+	BOOLEAN		ch1_linkup;
+	BOOLEAN		ch2_linkup;
+	BOOLEAN		ch1_linkdown;
+	BOOLEAN		ch2_linkdown;
 } SYSTEM_EVENTS;
 
 // SFP presence state:
@@ -52,12 +56,18 @@ typedef struct
 // REMOVED => присутствовало, но поступил сигнал ИЗВЛЕЧЁН
 typedef enum {ABSENT=0, INSERTED, PRESENT, REMOVED} SFP_PRESENCE;
 
+typedef enum {LINK_DOWN=0, LINK_UP_10M, LINK_UP_100M, LINK_UP_1000M} LINK_STATUS;
+typedef enum {SFP_UNKNOWN, SFP_100FX, SFP_1000X} SFP_TYPE;
 
 typedef struct
 {
 	OPERATING_MODE	op_mode;
 	SFP_PRESENCE	ch1_sfp_presence;
 	SFP_PRESENCE	ch2_sfp_presence;
+	SFP_TYPE		ch1_sfp_type;
+	SFP_TYPE		ch2_sfp_type;
+	LINK_STATUS		ch1_link_status;
+	LINK_STATUS		ch2_link_status;
 } SYSTEM_STATUS;
 
 
@@ -137,11 +147,20 @@ typedef struct
 //#define	PHY_REG_LINK_MD			0x1D
 //#define	PHY_REG_CONTROL1		0x1E
 //#define	PHY_REG_CONTROL2		0x1F
-//#define	INDIRRECT_REG_OPMODE		0x01DF
-//#define	INDIRRECT_REG_FIBER_STATUS	0x0C01
+
+// DP83869
+#define	DP83869_REG_BMCR			0x00
+#define	DP83869_REG_BMSR			0x01
+#define	DP83869_REG_PHY_STATUS		0x11
+#define	INDIRRECT_REG_OPMODE		0x01DF
+#define	INDIRRECT_REG_FIBER_STATUS	0x0C01
 
 
 // PHY's ID
+// DP83869
+#define		DP83869_ID1				0x2000
+#define		DP83869_ID2				0xA0F0
+#define		DP83869_ID2_MASK		0xFFF0
 // KSZ9031
 #define		KSZ9031_ID1				0x0022
 #define		KSZ9031_ID2				0x1620
@@ -160,6 +179,7 @@ typedef struct
 
 
 //=======================  S O F T   I 2 C  =======================//
+// clock
 #define	CH1_SCL_H		SFP_SCL_CH1_GPIO_Port->BSRR = (uint32_t)SFP_SCL_CH1_Pin;
 #define	CH1_SCL_L		SFP_SCL_CH1_GPIO_Port->BRR = (uint32_t)SFP_SCL_CH1_Pin;
 
@@ -171,6 +191,37 @@ typedef struct
 #define	SFP_SCL_H		port_SCL->BSRR = (uint32_t)pin_SCL;
 #define	SFP_SCL_L		port_SCL->BRR = (uint32_t)pin_SCL;
 
+// data
+#define	CH1_SDA_H		SFP_SDA_CH1_GPIO_Port->BSRR = (uint32_t)SFP_SDA_CH1_Pin;
+#define	CH1_SDA_L		SFP_SDA_CH1_GPIO_Port->BRR = (uint32_t)SFP_SDA_CH1_Pin;
+
+
+#define	CH2_SDA_H		SFP_SDA_CH2_GPIO_Port->BSRR = (uint32_t)SFP_SDA_CH1_Pin;
+#define	CH2_SDA_L		SFP_SDA_CH2_GPIO_Port->BRR = (uint32_t)SFP_SDA_CH1_Pin;
+
+
+#define	SFP_SDA_H		port_SDA->BSRR = (uint32_t)pin_SDA;
+#define	SFP_SDA_L		port_SDA->BRR = (uint32_t)pin_SDA;
+
+// data direction
+#define	CH1_SDA_INPUT_MASK	0xFFFFFCFF
+#define	CH2_SDA_INPUT_MASK	0xFFFCFFFF
+
+#define	CH1_SDA_OUTPUT_MASK	0x00000100
+#define	CH2_SDA_OUTPUT_MASK	0x00010000
+
+
+#define	CH1_SDA_INPUT		SFP_SDA_CH1_GPIO_Port->MODER &= CH1_SDA_INPUT_MASK;
+#define	CH1_SDA_OUTPUT		SFP_SDA_CH1_GPIO_Port->MODER |= CH1_SDA_OUTPUT_MASK;
+
+#define	CH2_SDA_INPUT		SFP_SDA_CH2_GPIO_Port->MODER &= CH2_SDA_INPUT_MASK;
+#define	CH2_SDA_OUTPUT		SFP_SDA_CH2_GPIO_Port->MODER |= CH2_SDA_OUTPUT_MASK;
+
+#define	SFP_SDA_INPUT		port_SDA->MODER &= pin_INPUT_MASK;
+#define	SFP_SDA_OUTPUT		port_SDA->MODER |= pin_OUTPUT_MASK;
+
+// SDA read
+#define	SFP_SDA_IN_L		((port_SDA->IDR & pin_SDA) == 0)
 
 
 #define	SFP_BUS_ADDRESS_LOW		0xA0
@@ -184,19 +235,9 @@ typedef struct
 
 typedef enum {CHANNEL1, CHANNEL2, CHANNEL3, CHANNEL4} CHANNEL;
 
-#pragma pack(1)
-typedef struct
-{
-	uint8_t		bus_address_operation;
-	uint8_t		register_address;
-	uint8_t		*payload;
-	uint8_t		payload_length;
-} SFP_PACKET;
-#pragma pack()
-
 
 //=======================   C O N S O L E   =======================//
-#define	__DEBUG__
+//#define	__DEBUG__
 // write debug message to console
 #ifdef __DEBUG__
 	#define		ConsoleWrite(message)	{if(message != NULL)\
@@ -224,6 +265,8 @@ extern GPIO_TypeDef*	port_SCL;
 extern uint16_t			pin_SCL;
 extern GPIO_TypeDef*	port_SDA;
 extern uint16_t			pin_SDA;
+extern uint32_t			pin_INPUT_MASK;
+extern uint32_t			pin_OUTPUT_MASK;
 
 
 //====================== F U N C    P R O T O S ======================//
@@ -240,10 +283,14 @@ uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address,
 
 // phy.c
 ErrorStatus CheckPHYPresence(OPERATING_MODE op_mode);
+void CheckLinkStatus(void);
 
 // SFP.c
 void CheckSFPPresence(void);
 ErrorStatus SFP_WriteData(uint8_t bus_address, uint8_t reg_address, uint8_t *data, uint8_t data_length, CHANNEL channel);
+ErrorStatus SFP_ReadData(uint8_t bus_address, uint8_t reg_address, uint8_t *data, uint8_t data_length, CHANNEL channel);
+void i2c_clk_delay(uint16_t del);
+void DefineSFPtype(CHANNEL channel);
 
 
 

@@ -21,7 +21,6 @@
 #include "main.h"
 #include "i2c.h"
 #include "iwdg.h"
-#include "tim.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -48,11 +47,8 @@
 
 /* USER CODE BEGIN PV */
 TIME_EVENTS		time_events = {FALSE, FALSE, FALSE, FALSE};
-SYSTEM_STATUS	system_status = {MODEX, ABSENT, ABSENT};
-SYSTEM_EVENTS	system_events = {FALSE, FALSE, FALSE, FALSE};
-
-
-extern TIM_HandleTypeDef htim6;
+SYSTEM_STATUS	system_status = {MODEX, ABSENT, ABSENT, SFP_UNKNOWN, SFP_UNKNOWN, LINK_DOWN, LINK_DOWN};
+SYSTEM_EVENTS	system_events = {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,17 +93,20 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_I2C2_Init();
 //  MX_IWDG_Init();
-  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-
+  
 	ConsoleWrite(_str_start_program);
 	
 	system_status.op_mode = DetermineOperatingMode();
+	
+	//!!!DEBUG!!!
+	system_status.op_mode = MODE0;
+	
 		
 	if(system_status.op_mode == MODEX)	// аппаратная ошибка определения режима работы
 		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
   
-	HAL_Delay(250);
+	HAL_Delay(250);	// guaranteed hardware reset time
 	
 //	WDT
   
@@ -120,23 +119,11 @@ int main(void)
 		CPU_PHY_RESET_CH2_H
 	}
 	
-	
 	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
 		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
 	
-//	WDT
-	
-	// Start TIM6
-	//!!!DEBUG
-	// CHANNEL1
-	port_SCL	= SFP_SCL_CH1_GPIO_Port;
-	pin_SCL		= SFP_SCL_CH1_Pin;
-	port_SDA	= SFP_SDA_CH1_GPIO_Port;
-	pin_SDA		= SFP_SDA_CH1_Pin;
-	// Update interrupt enabled
-	TIM6->DIER |= 0x01;
-	HAL_TIM_Base_Start(&htim6);
-	
+//	WDT	
+		
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,28 +137,88 @@ int main(void)
 		{
 			time_events.event_10ms = FALSE;
 			
-			if(system_events.event_sfp_inserted_ch1==TRUE)
+			if(system_status.op_mode != MODE3)
 			{
-				system_events.event_sfp_inserted_ch1 = FALSE;
-				ConsoleWrite("ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 1\n");
+				if(system_events.event_sfp_inserted_ch1 == TRUE)
+				{
+					system_events.event_sfp_inserted_ch1 = FALSE;
+					ConsoleWrite("ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 1\n");
+					DefineSFPtype(CHANNEL1);
+					if(system_status.ch1_sfp_type == SFP_100FX)
+						printf("Обнаружен SFP-модуль SFP_100FX\n");
+					if(system_status.ch1_sfp_type == SFP_1000X)
+						printf("Обнаружен SFP-модуль SFP_1000X\n");
+				}
+				
+				if(system_events.event_sfp_inserted_ch2 == TRUE)
+				{
+					system_events.event_sfp_inserted_ch2 = FALSE;
+					ConsoleWrite("ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 2\n");
+					DefineSFPtype(CHANNEL2);
+				}
+				
+				if(system_events.event_sfp_removed_ch1 == TRUE)
+				{
+					system_events.event_sfp_removed_ch1 = FALSE;
+					ConsoleWrite("МОДУЛЬ SFP КАНАЛ 1 ИЗВЛЕЧЁН\n");
+				}
+				
+				if(system_events.event_sfp_removed_ch2 == TRUE)
+				{
+					system_events.event_sfp_removed_ch2 = FALSE;
+					ConsoleWrite("МОДУЛЬ SFP КАНАЛ 2 ИЗВЛЕЧЁН\n");
+				}
 			}
 			
-			if(system_events.event_sfp_inserted_ch2==TRUE)
+			if(system_status.op_mode != MODE2)
 			{
-				system_events.event_sfp_inserted_ch2 = FALSE;
-				ConsoleWrite("ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 2\n");
-			}
-			
-			if(system_events.event_sfp_removed_ch1==TRUE)
-			{
-				system_events.event_sfp_removed_ch1 = FALSE;
-				ConsoleWrite("МОДУЛЬ SFP КАНАЛ 1 ИЗВЛЕЧЁН\n");
-			}
-			
-			if(system_events.event_sfp_removed_ch2==TRUE)
-			{
-				system_events.event_sfp_removed_ch2 = FALSE;
-				ConsoleWrite("МОДУЛЬ SFP КАНАЛ 2 ИЗВЛЕЧЁН\n");
+				if(system_events.ch1_linkup == TRUE)
+				{
+					system_events.ch1_linkup = FALSE;
+					
+					switch(system_status.ch1_link_status)
+					{
+						case LINK_UP_10M:
+							printf("CH1: LINK_UP_10M\n");
+						break;
+						case LINK_UP_100M:
+							printf("CH1: LINK_UP_100M\n");
+						break;
+						case LINK_UP_1000M:
+							printf("CH1: LINK_UP_1000M\n");
+						break;
+					}
+				}
+				
+				if(system_events.ch1_linkdown == TRUE)
+				{
+					system_events.ch1_linkdown = FALSE;
+					printf("CH1: LINK_DOWN\n");
+				}
+				
+				if(system_events.ch2_linkup == TRUE)
+				{
+					system_events.ch2_linkup = FALSE;
+					
+					switch(system_status.ch2_link_status)
+					{
+						case LINK_UP_10M:
+							printf("CH2: LINK_UP_10M\n");
+						break;
+						case LINK_UP_100M:
+							printf("CH2: LINK_UP_100M\n");
+						break;
+						case LINK_UP_1000M:
+							printf("CH2: LINK_UP_1000M\n");
+						break;
+					}
+				}
+				
+				if(system_events.ch2_linkdown == TRUE)
+				{
+					system_events.ch2_linkdown = FALSE;
+					printf("CH2: LINK_DOWN\n");
+				}
 			}
 		}
 
@@ -181,7 +228,13 @@ int main(void)
 	  	{
 			time_events.event_100ms = FALSE;
 			
-			CheckSFPPresence();
+			// проверяем наличие SFP-модулей
+			if(system_status.op_mode != MODE3)
+				CheckSFPPresence();
+			
+			// мониторим статус линка на медных портах
+			if(system_status.op_mode != MODE2)
+				CheckLinkStatus();
 		}
 		
 //		if(time_events.event_500ms == TRUE)
