@@ -1204,6 +1204,9 @@
                     <name>$PROJ_DIR$\..\Core\Src\i2c.c</name>
                 </file>
                 <file>
+                    <name>$PROJ_DIR$\..\Core\Src\i2c_GPIO.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\Core\Src\iwdg.c</name>
                 </file>
                 <file>

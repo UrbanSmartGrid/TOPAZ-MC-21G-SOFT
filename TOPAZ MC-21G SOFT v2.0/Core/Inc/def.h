@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "main.h"
 #include "usbd_cdc_if.h"
 
@@ -292,6 +293,6 @@ ErrorStatus SFP_ReadData(uint8_t bus_address, uint8_t reg_address, uint8_t *data
 void i2c_clk_delay(uint16_t del);
 void DefineSFPtype(CHANNEL channel);
 
-
+uint8_t i2c_receive_byte_data(uint8_t address, uint8_t reg);
 
 #endif	// __DEF_H__
