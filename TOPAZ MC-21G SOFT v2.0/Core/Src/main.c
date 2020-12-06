@@ -47,7 +47,10 @@
 
 /* USER CODE BEGIN PV */
 TIME_EVENTS		time_events = {FALSE, FALSE, FALSE, FALSE};
-SYSTEM_STATUS	system_status = {MODEX, ABSENT, ABSENT, SFP_UNKNOWN, SFP_UNKNOWN, LINK_DOWN, LINK_DOWN};
+SYSTEM_STATUS	system_status = {MODEX, ABSENT, ABSENT, 
+								SFP_UNKNOWN, SFP_UNKNOWN, 
+								LINK_DOWN, LINK_DOWN,
+								false, false};
 SYSTEM_EVENTS	system_events = {FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE};
 /* USER CODE END PV */
 
@@ -98,11 +101,7 @@ int main(void)
 	ConsoleWrite(_str_start_program);
 	
 	system_status.op_mode = DetermineOperatingMode();
-	
-	//!!!DEBUG!!!
-	system_status.op_mode = MODE0;
-	
-		
+			
 	if(system_status.op_mode == MODEX)	// аппаратная ошибка определения режима работы
 		ResolveCriticalException(HW_ERROR, _str_wrong_op_mode);
   
@@ -118,7 +117,7 @@ int main(void)
 		CPU_PHY_RESET_CH1_H
 		CPU_PHY_RESET_CH2_H
 	}
-	
+
 	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
 		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
 	
@@ -139,34 +138,56 @@ int main(void)
 			
 			if(system_status.op_mode != MODE3)
 			{
+				// ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 1
 				if(system_events.event_sfp_inserted_ch1 == TRUE)
 				{
 					system_events.event_sfp_inserted_ch1 = FALSE;
-					ConsoleWrite("ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 1\n");
 					DefineSFPtype(CHANNEL1);
-					if(system_status.ch1_sfp_type == SFP_100FX)
-						printf("Обнаружен SFP-модуль SFP_100FX\n");
-					if(system_status.ch1_sfp_type == SFP_1000X)
-						printf("Обнаружен SFP-модуль SFP_1000X\n");
+					
+					if(system_status.ch1_sfp_type == SFP_UNKNOWN)	// исключительная ситуация
+					{
+						// ResolveCriticalException(HW_ERROR, _str_sfp_detect_error);	
+					}
+					else
+					{
+						SFP_TX_ENABLE_CH1
+					
+						ConfigurePHY(CHANNEL1);
+					}
 				}
 				
+				// ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 2
 				if(system_events.event_sfp_inserted_ch2 == TRUE)
 				{
 					system_events.event_sfp_inserted_ch2 = FALSE;
-					ConsoleWrite("ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 2\n");
 					DefineSFPtype(CHANNEL2);
+					
+					if(system_status.ch2_sfp_type == SFP_UNKNOWN)	// исключительная ситуация
+					{
+						// ResolveCriticalException(HW_ERROR, _str_sfp_detect_error);	
+					}
+					else
+					{
+						SFP_TX_ENABLE_CH2
+						
+						ConfigurePHY(CHANNEL2);
+					}
 				}
 				
+				// МОДУЛЬ SFP КАНАЛ 1 ИЗВЛЕЧЁН
 				if(system_events.event_sfp_removed_ch1 == TRUE)
 				{
 					system_events.event_sfp_removed_ch1 = FALSE;
-					ConsoleWrite("МОДУЛЬ SFP КАНАЛ 1 ИЗВЛЕЧЁН\n");
+					
+					SFP_TX_DISABLE_CH1
 				}
 				
+				// МОДУЛЬ SFP КАНАЛ 1 ИЗВЛЕЧЁН
 				if(system_events.event_sfp_removed_ch2 == TRUE)
 				{
 					system_events.event_sfp_removed_ch2 = FALSE;
-					ConsoleWrite("МОДУЛЬ SFP КАНАЛ 2 ИЗВЛЕЧЁН\n");
+					
+					SFP_TX_DISABLE_CH2
 				}
 			}
 			
@@ -234,7 +255,7 @@ int main(void)
 			
 			// мониторим статус линка на медных портах
 			if(system_status.op_mode != MODE2)
-				CheckLinkStatus();
+				CheckCopperLinkStatus();
 		}
 		
 //		if(time_events.event_500ms == TRUE)
@@ -242,10 +263,13 @@ int main(void)
 //			time_events.event_500ms = FALSE;
 //		}
 //		
-//		if(time_events.event_1000ms == TRUE)
-//	  	{
-//			time_events.event_1000ms = FALSE;
-//		}
+		if(time_events.event_1000ms == TRUE)
+	  	{
+			time_events.event_1000ms = FALSE;
+			
+			//!!!DEBUG
+			CheckFiberLinkStatus();
+		}
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

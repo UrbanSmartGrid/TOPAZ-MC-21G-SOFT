@@ -69,6 +69,8 @@ typedef struct
 	SFP_TYPE		ch2_sfp_type;
 	LINK_STATUS		ch1_link_status;
 	LINK_STATUS		ch2_link_status;
+	bool			ch1_fiber_signal;
+	bool			ch2_fiber_signal;
 } SYSTEM_STATUS;
 
 
@@ -84,6 +86,11 @@ typedef struct
 #define	OUT_PHY_RESET_CH2_H		HAL_GPIO_WritePin(OUT_PHY_RESET_CH2_GPIO_Port, OUT_PHY_RESET_CH2_Pin, GPIO_PIN_SET);
 #define	OUT_PHY_RESET_CH2_L		HAL_GPIO_WritePin(OUT_PHY_RESET_CH2_GPIO_Port, OUT_PHY_RESET_CH2_Pin, GPIO_PIN_RESET);
 
+// включить-выключить передатчик SFP
+#define	SFP_TX_ENABLE_CH1		HAL_GPIO_WritePin(SFP_TX_ENABLE_CH1_GPIO_Port, SFP_TX_ENABLE_CH1_Pin, GPIO_PIN_RESET);
+#define	SFP_TX_DISABLE_CH1		HAL_GPIO_WritePin(SFP_TX_ENABLE_CH1_GPIO_Port, SFP_TX_ENABLE_CH1_Pin, GPIO_PIN_SET);
+#define	SFP_TX_ENABLE_CH2		HAL_GPIO_WritePin(SFP_TX_ENABLE_CH2_GPIO_Port, SFP_TX_ENABLE_CH2_Pin, GPIO_PIN_RESET);
+#define	SFP_TX_DISABLE_CH2		HAL_GPIO_WritePin(SFP_TX_ENABLE_CH2_GPIO_Port, SFP_TX_ENABLE_CH2_Pin, GPIO_PIN_SET);
 
 
 //#define	__MDIO_MASTER__
@@ -150,11 +157,16 @@ typedef struct
 //#define	PHY_REG_CONTROL2		0x1F
 
 // DP83869
-#define	DP83869_REG_BMCR			0x00
-#define	DP83869_REG_BMSR			0x01
-#define	DP83869_REG_PHY_STATUS		0x11
-#define	INDIRRECT_REG_OPMODE		0x01DF
-#define	INDIRRECT_REG_FIBER_STATUS	0x0C01
+#define	DP83869_REG_BMCR				0x00
+#define	DP83869_REG_BMSR				0x01
+#define	DP83869_REG_ANAR				0x04
+#define	DP83869_REG_GEN_CFG1			0x09
+#define	DP83869_REG_PHY_STATUS			0x11
+#define	INDIRRECT_REG_SERDES_SYNC_STS	0x4F
+#define	INDIRRECT_REG_OPMODE			0x01DF
+#define	INDIRRECT_REG_FIBER_STATUS		0x0C01
+#define	INDIRRECT_REG_FX_CTRL			0x0C00
+
 
 
 // PHY's ID
@@ -250,7 +262,8 @@ typedef enum {CHANNEL1, CHANNEL2, CHANNEL3, CHANNEL4} CHANNEL;
 // console message templates
 #define	_str_start_program		"START PROGRAMM EXECUTION!\n"
 #define	_str_wrong_op_mode		"Operation mode isn't determined!\n"
-#define	_str_phy_detect_error	"PHYs set doesn't match to selected operation mode!\n"
+#define	_str_phy_detect_error	"PHY`s set doesn't match to selected operation mode!\n"
+#define	_str_sfp_detect_error	"SFP type isn't determined!\n"
 
 //=================================================================//										
 										
@@ -284,7 +297,9 @@ uint16_t Marvell_ReadPortRegister(uint8_t chip_address, uint8_t int_dev_address,
 
 // phy.c
 ErrorStatus CheckPHYPresence(OPERATING_MODE op_mode);
-void CheckLinkStatus(void);
+void CheckCopperLinkStatus(void);
+void CheckFiberLinkStatus(void);
+void ConfigurePHY(CHANNEL channel);
 
 // SFP.c
 void CheckSFPPresence(void);
@@ -293,6 +308,8 @@ ErrorStatus SFP_ReadData(uint8_t bus_address, uint8_t reg_address, uint8_t *data
 void i2c_clk_delay(uint16_t del);
 void DefineSFPtype(CHANNEL channel);
 
+// i2c_GPIO.c
 uint8_t i2c_receive_byte_data(uint8_t address, uint8_t reg);
+bool i2c_send_byte_data(uint8_t address, uint8_t reg, uint8_t data);
 
 #endif	// __DEF_H__
