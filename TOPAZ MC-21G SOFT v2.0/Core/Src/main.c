@@ -95,7 +95,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_I2C2_Init();
-//  MX_IWDG_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   
 	ConsoleWrite(_str_start_program);
@@ -107,7 +107,7 @@ int main(void)
   
 	HAL_Delay(250);	// guaranteed hardware reset time
 	
-//	WDT
+	WDT
   
 	// de-assert HW reset pins
 	OUT_PHY_RESET_CH1_H
@@ -120,6 +120,65 @@ int main(void)
 
 	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
 		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
+	
+	// проверяем наличие SFP-модулей
+	if(system_status.op_mode != MODE3)
+	{
+		CheckSFPPresence();
+		
+		WDT
+			
+		// ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 1
+		if(system_events.event_sfp_inserted_ch1 == TRUE)
+		{
+			DefineSFPtype(CHANNEL1);
+					
+			if(system_status.ch1_sfp_type == SFP_UNKNOWN)	// исключительная ситуация
+			{
+				// ResolveCriticalException(HW_ERROR, _str_sfp_detect_error);	
+			}
+			else
+			{
+				SFP_TX_ENABLE_CH1
+					
+				ConfigurePHY(CHANNEL1);
+			}
+		}
+		
+		WDT
+				
+		// ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 2
+		if(system_events.event_sfp_inserted_ch2 == TRUE)
+		{
+			DefineSFPtype(CHANNEL2);
+					
+			if(system_status.ch2_sfp_type == SFP_UNKNOWN)	// исключительная ситуация
+			{
+				// ResolveCriticalException(HW_ERROR, _str_sfp_detect_error);	
+			}
+			else
+			{
+				SFP_TX_ENABLE_CH2
+				
+				ConfigurePHY(CHANNEL2);
+			}
+		}
+		
+		WDT
+			
+		if(system_status.op_mode == MODE0)
+		{
+			while(1)
+			{
+				//-------------------------------------------------------//
+				if(time_events.event_100ms == TRUE)
+	  			{
+					time_events.event_100ms = FALSE;
+					//	WDT	
+				}
+			}
+		}
+	}
 	
 //	WDT	
 		
