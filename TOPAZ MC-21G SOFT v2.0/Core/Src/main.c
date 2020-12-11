@@ -95,7 +95,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   MX_I2C2_Init();
-  MX_IWDG_Init();
+//  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   
 	ConsoleWrite(_str_start_program);
@@ -118,69 +118,13 @@ int main(void)
 		CPU_PHY_RESET_CH2_H
 	}
 
+	// проверяем ответы от микросхем PHY
 	if(CheckPHYPresence(system_status.op_mode) != SUCCESS)
 		ResolveCriticalException(HW_ERROR, _str_phy_detect_error);
 	
-	// проверяем наличие SFP-модулей
-	if(system_status.op_mode != MODE3)
-	{
-		CheckSFPPresence();
+	WDT
 		
-		WDT
-			
-		// ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 1
-		if(system_events.event_sfp_inserted_ch1 == TRUE)
-		{
-			DefineSFPtype(CHANNEL1);
-					
-			if(system_status.ch1_sfp_type == SFP_UNKNOWN)	// исключительная ситуация
-			{
-				// ResolveCriticalException(HW_ERROR, _str_sfp_detect_error);	
-			}
-			else
-			{
-				SFP_TX_ENABLE_CH1
-					
-				ConfigurePHY(CHANNEL1);
-			}
-		}
-		
-		WDT
-				
-		// ВСТАВЛЕН МОДУЛЬ SFP КАНАЛ 2
-		if(system_events.event_sfp_inserted_ch2 == TRUE)
-		{
-			DefineSFPtype(CHANNEL2);
-					
-			if(system_status.ch2_sfp_type == SFP_UNKNOWN)	// исключительная ситуация
-			{
-				// ResolveCriticalException(HW_ERROR, _str_sfp_detect_error);	
-			}
-			else
-			{
-				SFP_TX_ENABLE_CH2
-				
-				ConfigurePHY(CHANNEL2);
-			}
-		}
-		
-		WDT
-			
-		if(system_status.op_mode == MODE0)
-		{
-			while(1)
-			{
-				//-------------------------------------------------------//
-				if(time_events.event_100ms == TRUE)
-	  			{
-					time_events.event_100ms = FALSE;
-					//	WDT	
-				}
-			}
-		}
-	}
 	
-//	WDT	
 		
   /* USER CODE END 2 */
 
@@ -188,7 +132,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-//		WDT
+		WDT
 		  
 		//-------------------------------------------------------//
 		if(time_events.event_10ms == TRUE)
@@ -239,14 +183,27 @@ int main(void)
 					system_events.event_sfp_removed_ch1 = FALSE;
 					
 					SFP_TX_DISABLE_CH1
+						
+					printf("\nCH1 SFP extracted\n");
+					
+					// soft reset
+					if(system_status.op_mode == MODE0)
+						write_MDIO(OUT_PHY_ADR_CH1, 0x00, 0x8000);
+											
 				}
 				
-				// МОДУЛЬ SFP КАНАЛ 1 ИЗВЛЕЧЁН
+				// МОДУЛЬ SFP КАНАЛ 2 ИЗВЛЕЧЁН
 				if(system_events.event_sfp_removed_ch2 == TRUE)
 				{
 					system_events.event_sfp_removed_ch2 = FALSE;
 					
 					SFP_TX_DISABLE_CH2
+						
+					printf("\nCH2 SFP extracted\n");
+					
+					// soft reset
+					if(system_status.op_mode == MODE0)
+						write_MDIO(OUT_PHY_ADR_CH2, 0x00, 0x8000);					
 				}
 			}
 			
@@ -313,8 +270,8 @@ int main(void)
 				CheckSFPPresence();
 			
 			// мониторим статус линка на медных портах
-			if(system_status.op_mode != MODE2)
-				CheckCopperLinkStatus();
+//			if(system_status.op_mode != MODE2)
+//				CheckCopperLinkStatus();
 		}
 		
 //		if(time_events.event_500ms == TRUE)
@@ -327,7 +284,7 @@ int main(void)
 			time_events.event_1000ms = FALSE;
 			
 			//!!!DEBUG
-			CheckFiberLinkStatus();
+//			CheckFiberLinkStatus();
 		}
     /* USER CODE END WHILE */
 

@@ -181,7 +181,7 @@ typedef struct
 
 
 
-#define	__WDT__
+//#define	__WDT__
 #ifdef __WDT__
 	// reset IWDT
 	#define		WDT		HAL_IWDG_Refresh(&hiwdg);

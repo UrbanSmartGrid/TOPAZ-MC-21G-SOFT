@@ -189,6 +189,8 @@ void ConfigurePHY(CHANNEL channel)
 			phy_out_adr	= OUT_PHY_ADR_CH1; 
 			phy_cpu_adr	= CPU_PHY_ADR_CH1;
 			sfp_type	= system_status.ch1_sfp_type;
+			
+			printf("\nCH1 SFP detected => ");
 		} 
 		break;
 		case CHANNEL2:
@@ -196,6 +198,7 @@ void ConfigurePHY(CHANNEL channel)
 			phy_out_adr = OUT_PHY_ADR_CH2; 
 			phy_cpu_adr = CPU_PHY_ADR_CH2;
 			sfp_type	= system_status.ch2_sfp_type;
+			printf("\nCH2 SFP detected => ");
 		} 
 		break;
 	}
@@ -206,9 +209,15 @@ void ConfigurePHY(CHANNEL channel)
 		case MODE0:	// media-convertor
 		{
 			if(sfp_type == SFP_100FX)
+			{
 				ConfigureMediaConvertor100M(phy_out_adr);
+				printf("100M\n");
+			}
 			if(sfp_type == SFP_1000X)
+			{
 				ConfigureMediaConvertor1000M(phy_out_adr);
+				printf("1G\n");
+			}
 		}			
 		break;
 	}
